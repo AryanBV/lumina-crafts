@@ -1,7 +1,5 @@
 "use client";
 
-import Link from "next/link";
-import { Flame } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function AuthLayout({
@@ -12,24 +10,9 @@ export default function AuthLayout({
   return (
     <div className="min-h-screen flex">
       {/* Left Side - Form */}
-      <div className="w-full lg:w-1/2 flex flex-col">
-        {/* Logo */}
-        <div className="p-8">
-          <Link href="/" className="flex items-center space-x-3">
-            <div className="bg-gradient-to-r from-caramel to-gold p-2 rounded-full">
-              <Flame className="w-6 h-6 text-white" />
-            </div>
-            <h1 className="text-2xl font-serif font-bold text-gradient">
-              Lumina Crafts
-            </h1>
-          </Link>
-        </div>
-
-        {/* Form Container */}
-        <div className="flex-1 flex items-center justify-center px-8 pb-8">
-          <div className="w-full max-w-md">
-            {children}
-          </div>
+      <div className="w-full lg:w-1/2 flex items-center justify-center px-8 py-12">
+        <div className="w-full max-w-md">
+          {children}
         </div>
       </div>
 
