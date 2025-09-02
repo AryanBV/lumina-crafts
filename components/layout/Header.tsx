@@ -2,20 +2,27 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { ShoppingBag, Menu, X, User, Search, Flame, ChevronRight } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { ShoppingBag, Menu, X, User, Search, Flame, Trash2, ChevronRight } from "lucide-react";
+import { cn, formatPrice } from "@/lib/utils";
 import { useCartStore } from "@/lib/store";
-import { formatPrice } from "@/lib/utils";
-import { motion, AnimatePresence } from "framer-motion";
+import { createClient } from "@/lib/supabase/client";
+import { User as SupabaseUser } from "@supabase/supabase-js";
+import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const [showCartPreview, setShowCartPreview] = useState(false);
+  const [isCartHovered, setIsCartHovered] = useState(false);
+  const [user, setUser] = useState<SupabaseUser | null>(null);
   
-  // Get cart data from Zustand store
-  const { items, getTotalItems, getTotalPrice, removeItem } = useCartStore();
-  const cartItemsCount = getTotalItems();
+  const cartItems = useCartStore((state) => state.items);
+  const cartItemsCount = useCartStore((state) => state.getTotalItems());
+  const cartTotal = useCartStore((state) => state.getTotalPrice());
+  const removeItem = useCartStore((state) => state.removeItem);
+  
+  const supabase = createClient();
+  const router = useRouter();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -25,12 +32,38 @@ export default function Header() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  useEffect(() => {
+    // Get initial user
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setUser(user);
+    });
+
+    // Listen for auth changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, [supabase.auth]);
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    toast.success("Signed out successfully");
+    router.push("/");
+    router.refresh();
+  };
+
   const navLinks = [
     { href: "/", label: "Home" },
     { href: "/products", label: "Shop" },
     { href: "/about", label: "Our Story" },
     { href: "/contact", label: "Contact" },
   ];
+
+  const freeShippingThreshold = 1000;
+  const shippingProgress = Math.min((cartTotal / freeShippingThreshold) * 100, 100);
 
   return (
     <>
@@ -91,174 +124,146 @@ export default function Header() {
                 <Search className="w-5 h-5 text-coffee group-hover:text-caramel transition-colors" />
               </button>
               
-              {/* User */}
-              <Link 
-                href="/login" 
-                className="p-2.5 hover:bg-nude-light rounded-full transition-all duration-200 group"
-              >
-                <User className="w-5 h-5 text-coffee group-hover:text-caramel transition-colors" />
-              </Link>
+              {/* User Menu */}
+              <div className="relative group">
+                {user ? (
+                  <button 
+                    className="p-2.5 hover:bg-nude-light rounded-full transition-all duration-200 group"
+                  >
+                    <User className="w-5 h-5 text-coffee group-hover:text-caramel transition-colors" />
+                  </button>
+                ) : (
+                  <Link 
+                    href="/login" 
+                    className="p-2.5 hover:bg-nude-light rounded-full transition-all duration-200 group"
+                  >
+                    <User className="w-5 h-5 text-coffee group-hover:text-caramel transition-colors" />
+                  </Link>
+                )}
+                
+                {/* User Dropdown */}
+                {user && (
+                  <div className="absolute right-0 mt-2 w-56 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                    <div className="bg-white rounded-2xl shadow-xl p-2 border border-nude">
+                      <div className="px-4 py-3 border-b border-nude">
+                        <p className="text-sm font-medium text-brown truncate">
+                          {user.email}
+                        </p>
+                      </div>
+                      <Link href="/profile" className="block px-4 py-2 text-coffee hover:bg-nude-light rounded-xl transition-colors">
+                        My Account
+                      </Link>
+                      <Link href="/profile/orders" className="block px-4 py-2 text-coffee hover:bg-nude-light rounded-xl transition-colors">
+                        Orders
+                      </Link>
+                      <Link href="/profile/wishlist" className="block px-4 py-2 text-coffee hover:bg-nude-light rounded-xl transition-colors">
+                        Wishlist
+                      </Link>
+                      <hr className="my-2 border-nude" />
+                      <button 
+                        onClick={handleSignOut}
+                        className="w-full text-left px-4 py-2 text-coffee hover:bg-nude-light rounded-xl transition-colors"
+                      >
+                        Sign Out
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
 
               {/* Cart with Preview */}
               <div 
                 className="relative"
-                onMouseEnter={() => setShowCartPreview(true)}
-                onMouseLeave={() => setShowCartPreview(false)}
+                onMouseEnter={() => setIsCartHovered(true)}
+                onMouseLeave={() => setIsCartHovered(false)}
               >
                 <Link 
                   href="/cart" 
                   className="relative p-2.5 hover:bg-nude-light rounded-full transition-all duration-200 group"
                 >
                   <ShoppingBag className="w-5 h-5 text-coffee group-hover:text-caramel transition-colors" />
-                  <AnimatePresence>
-                    {cartItemsCount > 0 && (
-                      <motion.span
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        exit={{ scale: 0 }}
-                        className="absolute -top-0.5 -right-0.5 bg-gradient-to-r from-caramel to-gold text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center shadow-lg"
-                      >
-                        {cartItemsCount}
-                      </motion.span>
-                    )}
-                  </AnimatePresence>
+                  {cartItemsCount > 0 && (
+                    <span className="absolute -top-0.5 -right-0.5 bg-gradient-to-r from-caramel to-gold text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center shadow-lg">
+                      {cartItemsCount}
+                    </span>
+                  )}
                 </Link>
 
                 {/* Cart Preview Dropdown */}
-                <AnimatePresence>
-                  {showCartPreview && cartItemsCount > 0 && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: 10 }}
-                      transition={{ duration: 0.2 }}
-                      className="absolute right-0 mt-2 w-96 bg-white rounded-2xl shadow-2xl overflow-hidden z-50"
-                    >
-                      {/* Header */}
-                      <div className="bg-gradient-to-r from-nude to-nude-light p-4 border-b border-nude">
-                        <div className="flex items-center justify-between">
-                          <h3 className="font-semibold text-brown">
-                            Cart ({cartItemsCount} {cartItemsCount === 1 ? 'item' : 'items'})
-                          </h3>
-                          <Link
-                            href="/cart"
-                            className="text-sm text-caramel hover:text-caramel-dark transition-colors font-medium"
-                          >
-                            View All
-                          </Link>
-                        </div>
-                      </div>
-
-                      {/* Cart Items */}
-                      <div className="max-h-80 overflow-y-auto p-4">
-                        {items.slice(0, 3).map((item) => (
-                          <div key={item.product.id} className="flex items-center space-x-3 mb-4 pb-4 border-b border-nude-light last:border-0">
-                            {/* Product Image */}
-                            <div className="w-16 h-16 bg-gradient-to-br from-nude-light to-nude rounded-lg flex items-center justify-center flex-shrink-0">
-                              <span className="text-2xl">🕯️</span>
-                            </div>
-                            
-                            {/* Product Info */}
-                            <div className="flex-1">
-                              <h4 className="text-sm font-medium text-brown line-clamp-1">
-                                {item.product.name}
-                              </h4>
-                              <p className="text-xs text-coffee-light">
-                                {item.quantity} x {formatPrice(item.product.price)}
-                              </p>
-                            </div>
-                            
-                            {/* Price */}
-                            <div className="text-right">
-                              <p className="text-sm font-semibold text-coffee">
-                                {formatPrice(item.product.price * item.quantity)}
-                              </p>
-                            </div>
-                            
-                            {/* Remove Button */}
-                            <button
-                              onClick={(e) => {
-                                e.preventDefault();
-                                removeItem(item.product.id);
-                              }}
-                              className="p-1 hover:bg-red-50 rounded transition-colors"
-                            >
-                              <X className="w-4 h-4 text-red-500" />
-                            </button>
-                          </div>
-                        ))}
-                        
-                        {items.length > 3 && (
-                          <p className="text-center text-sm text-coffee-light mt-2">
-                            +{items.length - 3} more items
-                          </p>
-                        )}
-                      </div>
-
-                      {/* Footer */}
-                      <div className="bg-gradient-to-r from-nude-light to-cream p-4">
-                        <div className="flex items-center justify-between mb-4">
-                          <span className="font-medium text-brown">Subtotal:</span>
-                          <span className="text-xl font-bold text-coffee">
-                            {formatPrice(getTotalPrice())}
-                          </span>
-                        </div>
-                        
-                        <div className="grid grid-cols-2 gap-2">
-                          <Link
-                            href="/cart"
-                            className="px-4 py-2 border-2 border-coffee text-coffee font-medium rounded-full hover:bg-nude-light transition-all text-center text-sm"
-                          >
-                            View Cart
-                          </Link>
-                          <Link
-                            href="/checkout"
-                            className="px-4 py-2 bg-gradient-to-r from-coffee to-caramel text-white font-medium rounded-full hover:shadow-lg transition-all text-center text-sm flex items-center justify-center space-x-1"
-                          >
-                            <span>Checkout</span>
-                            <ChevronRight className="w-4 h-4" />
-                          </Link>
-                        </div>
-                        
-                        {getTotalPrice() < 1000 && (
-                          <p className="text-xs text-coffee-light text-center mt-3">
-                            Add {formatPrice(1000 - getTotalPrice())} more for free shipping!
-                          </p>
-                        )}
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-
-                {/* Empty Cart Preview */}
-                <AnimatePresence>
-                  {showCartPreview && cartItemsCount === 0 && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: 10 }}
-                      transition={{ duration: 0.2 }}
-                      className="absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-2xl p-6 z-50"
-                    >
-                      <div className="text-center">
-                        <div className="w-16 h-16 bg-nude-light rounded-full mx-auto mb-3 flex items-center justify-center">
-                          <ShoppingBag className="w-8 h-8 text-coffee" />
-                        </div>
-                        <p className="text-coffee font-medium mb-2">Your cart is empty</p>
-                        <p className="text-sm text-coffee-light mb-4">
-                          Add some candles to brighten your space!
+                {isCartHovered && cartItems.length > 0 && (
+                  <div className="absolute right-0 mt-2 w-96 bg-white rounded-2xl shadow-2xl p-6 z-50 border border-nude">
+                    {/* Free Shipping Progress */}
+                    {cartTotal < freeShippingThreshold && (
+                      <div className="mb-4 p-3 bg-nude-light rounded-xl">
+                        <p className="text-sm text-coffee mb-2">
+                          Add {formatPrice(freeShippingThreshold - cartTotal)} more for free shipping!
                         </p>
+                        <div className="w-full bg-nude rounded-full h-2">
+                          <div 
+                            className="bg-gradient-to-r from-caramel to-gold h-2 rounded-full transition-all duration-300"
+                            style={{ width: `${shippingProgress}%` }}
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Cart Items */}
+                    <div className="space-y-3 max-h-64 overflow-y-auto">
+                      {cartItems.slice(0, 3).map((item) => (
+                        <div key={item.product.id} className="flex items-center space-x-3">
+                          <div className="w-16 h-16 bg-nude rounded-lg flex items-center justify-center">
+                            <span className="text-2xl">🕯️</span>
+                          </div>
+                          <div className="flex-1">
+                            <h4 className="font-medium text-brown text-sm">{item.product.name}</h4>
+                            <p className="text-coffee text-sm">
+                              {item.quantity} × {formatPrice(item.product.price)}
+                            </p>
+                          </div>
+                          <button
+                            onClick={() => {
+                              removeItem(item.product.id);
+                              toast.success("Item removed from cart");
+                            }}
+                            className="p-1 hover:bg-nude-light rounded-full transition-colors"
+                          >
+                            <Trash2 className="w-4 h-4 text-coffee-light" />
+                          </button>
+                        </div>
+                      ))}
+                      {cartItems.length > 3 && (
+                        <p className="text-sm text-coffee text-center">
+                          +{cartItems.length - 3} more items
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Cart Footer */}
+                    <div className="mt-4 pt-4 border-t border-nude">
+                      <div className="flex justify-between mb-4">
+                        <span className="font-semibold text-brown">Total:</span>
+                        <span className="font-bold text-xl text-coffee">
+                          {formatPrice(cartTotal)}
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
                         <Link
-                          href="/products"
-                          className="inline-flex items-center space-x-2 px-6 py-2 bg-gradient-to-r from-coffee to-caramel text-white font-medium rounded-full hover:shadow-lg transition-all text-sm"
+                          href="/cart"
+                          className="text-center px-4 py-2 border border-coffee text-coffee rounded-full hover:bg-nude-light transition-colors text-sm font-medium"
                         >
-                          <span>Shop Now</span>
+                          View Cart
+                        </Link>
+                        <Link
+                          href="/checkout"
+                          className="text-center px-4 py-2 bg-gradient-to-r from-coffee to-caramel text-white rounded-full hover:shadow-lg transition-all text-sm font-medium flex items-center justify-center space-x-1"
+                        >
+                          <span>Checkout</span>
                           <ChevronRight className="w-4 h-4" />
                         </Link>
                       </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Mobile menu button */}
@@ -277,60 +282,55 @@ export default function Header() {
         </nav>
 
         {/* Mobile Menu */}
-        <AnimatePresence>
-          {isMenuOpen && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              className="lg:hidden bg-white border-t border-nude shadow-xl"
-            >
-              <div className="px-6 py-8 space-y-6">
-                {navLinks.map((link) => (
+        <div className={cn(
+          "lg:hidden fixed inset-x-0 bg-white border-t border-nude shadow-xl transition-all duration-300 ease-in-out",
+          isMenuOpen 
+            ? "opacity-100 translate-y-0" 
+            : "opacity-0 -translate-y-full pointer-events-none"
+        )}>
+          <div className="px-6 py-8 space-y-6">
+            {navLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                onClick={() => setIsMenuOpen(false)}
+                className="block text-lg font-medium text-coffee hover:text-caramel transition-colors"
+              >
+                {link.label}
+              </Link>
+            ))}
+            <div className="pt-6 border-t border-nude">
+              {user ? (
+                <div className="space-y-4">
                   <Link
-                    key={link.href}
-                    href={link.href}
+                    href="/profile"
                     onClick={() => setIsMenuOpen(false)}
                     className="block text-lg font-medium text-coffee hover:text-caramel transition-colors"
                   >
-                    {link.label}
+                    My Account
                   </Link>
-                ))}
-                
-                {/* Cart Summary for Mobile */}
-                {cartItemsCount > 0 && (
-                  <div className="pt-6 border-t border-nude">
-                    <Link
-                      href="/cart"
-                      onClick={() => setIsMenuOpen(false)}
-                      className="flex items-center justify-between p-4 bg-gradient-to-r from-nude-light to-cream rounded-2xl"
-                    >
-                      <div className="flex items-center space-x-3">
-                        <ShoppingBag className="w-5 h-5 text-coffee" />
-                        <span className="font-medium text-brown">
-                          Cart ({cartItemsCount})
-                        </span>
-                      </div>
-                      <span className="font-bold text-coffee">
-                        {formatPrice(getTotalPrice())}
-                      </span>
-                    </Link>
-                  </div>
-                )}
-                
-                <div className="pt-6 border-t border-nude">
-                  <Link
-                    href="/login"
-                    onClick={() => setIsMenuOpen(false)}
-                    className="block w-full text-center bg-gradient-to-r from-coffee to-caramel text-white py-3 rounded-full font-medium hover:shadow-lg transition-all duration-200"
+                  <button
+                    onClick={() => {
+                      handleSignOut();
+                      setIsMenuOpen(false);
+                    }}
+                    className="block w-full text-left text-lg font-medium text-coffee hover:text-caramel transition-colors"
                   >
-                    Sign In / Sign Up
-                  </Link>
+                    Sign Out
+                  </button>
                 </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+              ) : (
+                <Link
+                  href="/login"
+                  onClick={() => setIsMenuOpen(false)}
+                  className="block w-full text-center bg-gradient-to-r from-coffee to-caramel text-white py-3 rounded-full font-medium hover:shadow-lg transition-all duration-200"
+                >
+                  Sign In / Sign Up
+                </Link>
+              )}
+            </div>
+          </div>
+        </div>
       </header>
     </>
   );
