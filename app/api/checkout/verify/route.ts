@@ -1,4 +1,3 @@
-// app/api/checkout/verify/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { createClient } from '@/lib/supabase/server';
@@ -15,9 +14,10 @@ export async function POST(request: NextRequest) {
     
     const razorpaySecret = process.env.RAZORPAY_KEY_SECRET;
     
-    // Check if Razorpay key secret is available
+    // Check if Razorpay key secret is available before using it
     if (!razorpaySecret) {
       console.error('RAZORPAY_KEY_SECRET is not set. Cannot verify payment signature.');
+      // Return an error response if the secret is missing. This prevents the build from failing.
       return NextResponse.json({ success: false, message: 'Payment key not configured' }, { status: 500 });
     }
 

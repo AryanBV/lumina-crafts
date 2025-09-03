@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
       guest_phone,
     } = body;
     
-    // Check if Razorpay keys are available
+    // Check if Razorpay keys are available before creating the client
     if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
       console.error('Razorpay keys are not set. Cannot create a Razorpay order.');
       // Return an error response instead of crashing the build
@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
     const orderItems = items.map((item: any) => ({
       order_id: orderData.id,
       product_id: item.product_id,
-      product_name: item.product.name,
+      product_name: item.product_name,
       product_price: item.price,
       quantity: item.quantity,
       total: item.price * item.quantity,
