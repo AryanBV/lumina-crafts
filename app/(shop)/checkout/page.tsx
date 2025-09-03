@@ -1,3 +1,4 @@
+// app/(shop)/checkout/page.tsx
 "use client";
 
 import { useState, useEffect } from "react";
@@ -9,10 +10,10 @@ import { formatPrice } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 import Script from "next/script";
 import { 
-  ShoppingBag, User, MapPin, CreditCard, Check, 
+  User, CreditCard, Check, 
   ArrowLeft, ArrowRight, Lock, Truck, Package,
-  Mail, Phone, Home, Building, Navigation,
-  Shield, ChevronDown, Info, Sparkles, Gift,
+  Mail, Phone, Home, Building,
+  Shield,
   Smartphone, Wallet, CreditCard as CardIcon
 } from "lucide-react";
 import toast from "react-hot-toast";
@@ -139,6 +140,13 @@ export default function CheckoutPage() {
     setIsProcessing(true);
     
     try {
+      // Check if the public Razorpay key is defined
+      if (!process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID) {
+        toast.error("Online payment is not configured. Please choose another method.");
+        setIsProcessing(false);
+        return;
+      }
+      
       // Initialize Razorpay
       const res = await initializeRazorpay();
       if (!res) {
@@ -237,7 +245,7 @@ export default function CheckoutPage() {
     }
   };
 
-  const createOrder = async (method: string) => {
+  const createOrder = async () => {
     // For COD orders
     try {
       const orderData = {
@@ -631,7 +639,7 @@ export default function CheckoutPage() {
                         </button>
                       </div>
                     </form>
-                  </motion.div>
+                  </div>
                 )}
 
                 {/* Step 2: Payment with Razorpay */}
@@ -654,7 +662,7 @@ export default function CheckoutPage() {
                         paymentMethod === 'online' 
                           ? 'border-caramel bg-gradient-to-br from-nude-light to-cream' 
                           : 'border-nude hover:border-coffee'
-                      }`}>
+                      } ${!process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID ? 'opacity-50 cursor-not-allowed' : ''}`}>
                         <input
                           type="radio"
                           name="payment"
@@ -662,6 +670,7 @@ export default function CheckoutPage() {
                           checked={paymentMethod === 'online'}
                           onChange={() => setPaymentMethod('online')}
                           className="sr-only"
+                          disabled={!process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID}
                         />
                         <div className="space-y-4">
                           <div className="flex items-center justify-between">
@@ -837,19 +846,31 @@ export default function CheckoutPage() {
                 {/* Price Breakdown */}
                 <div className="space-y-3 py-6 border-y border-nude">
                   <div className="flex justify-between text-coffee">
-                    <span>Subtotal</span>
-                    <span>{formatPrice(subtotal)}</span>
+                    <span>Subtotal ({items.length} items)</span>
+                    <span className="font-medium">{formatPrice(subtotal)}</span>
                   </div>
+                  
+                  {/* Coupon/Discount section removed due to missing variables */}
+                  
                   <div className="flex justify-between text-coffee">
-                    <span>Shipping</span>
-                    <span className={shippingCost === 0 ? 'text-green-600 font-medium' : ''}>
-                      {shippingCost === 0 ? 'FREE' : formatPrice(shippingCost)}
+                    <span className="flex items-center space-x-1">
+                      <Truck className="w-4 h-4" />
+                      <span>Shipping</span>
+                    </span>
+                    <span className="font-medium">
+                      {shippingCost === 0 ? (
+                        <span className="text-green-600">FREE</span>
+                      ) : (
+                        formatPrice(shippingCost)
+                      )}
                     </span>
                   </div>
-                  <div className="flex justify-between text-coffee">
-                    <span>GST (18%)</span>
-                    <span>{formatPrice(tax)}</span>
-                  </div>
+                  
+                  {shippingCost > 0 && (
+                    <p className="text-xs text-coffee-light">
+                      Add {formatPrice(1000 - subtotal)} more for free shipping
+                    </p>
+                  )}
                 </div>
 
                 {/* Total */}
@@ -857,18 +878,42 @@ export default function CheckoutPage() {
                   <span className="text-xl font-semibold text-brown">Total</span>
                   <div className="text-right">
                     <p className="text-2xl font-bold text-coffee">{formatPrice(total)}</p>
-                    <p className="text-xs text-coffee-light">Including all taxes</p>
+                    <p className="text-xs text-coffee-light">Including GST</p>
                   </div>
                 </div>
 
-                {/* Trust Badges */}
+                {/* Checkout Button */}
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => router.push('/checkout')}
+                  className="w-full bg-gradient-to-r from-coffee to-caramel text-white font-medium py-4 rounded-full hover:shadow-2xl transition-all duration-300 flex items-center justify-center space-x-2"
+                >
+                  <span>Proceed to Checkout</span>
+                  <ArrowRight className="w-5 h-5" />
+                </motion.button>
+
+                {/* Payment Methods */}
                 <div className="mt-6 pt-6 border-t border-nude">
-                  <div className="flex items-center justify-center space-x-2 text-coffee text-sm">
-                    <Gift className="w-4 h-4 text-caramel" />
-                    <span>Gift wrapping available</span>
+                  <p className="text-sm text-coffee-light text-center mb-3">
+                    We accept
+                  </p>
+                  <div className="flex justify-center space-x-3">
+                    <div className="w-12 h-8 bg-nude-light rounded flex items-center justify-center text-xs font-bold text-coffee">
+                      VISA
+                    </div>
+                    <div className="w-12 h-8 bg-nude-light rounded flex items-center justify-center text-xs font-bold text-coffee">
+                      MC
+                    </div>
+                    <div className="w-12 h-8 bg-nude-light rounded flex items-center justify-center text-xs font-bold text-coffee">
+                      UPI
+                    </div>
+                    <div className="w-12 h-8 bg-nude-light rounded flex items-center justify-center text-xs font-bold text-coffee">
+                      NB
+                    </div>
                   </div>
                 </div>
-              </div>
+              </motion.div>
             </div>
           </div>
         </div>

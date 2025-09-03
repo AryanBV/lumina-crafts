@@ -1,17 +1,13 @@
+// app/api/checkout/razorpay/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import Razorpay from 'razorpay';
 import { createClient } from '@/lib/supabase/server';
-
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID!,
-  key_secret: process.env.RAZORPAY_KEY_SECRET!,
-});
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const supabase = await createClient();
-    
+
     const {
       items,
       shipping_address,
@@ -24,6 +20,21 @@ export async function POST(request: NextRequest) {
       guest_name,
       guest_phone,
     } = body;
+    
+    // Check if Razorpay keys are available
+    if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
+      console.error('Razorpay keys are not set. Cannot create a Razorpay order.');
+      // Return an error response instead of crashing the build
+      return NextResponse.json(
+        { error: 'Razorpay keys are not configured. Please contact support.' },
+        { status: 500 }
+      );
+    }
+    
+    const razorpay = new Razorpay({
+      key_id: process.env.RAZORPAY_KEY_ID,
+      key_secret: process.env.RAZORPAY_KEY_SECRET,
+    });
 
     // Generate order number
     const orderNumber = `LMN-${new Date().getFullYear()}-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`;
@@ -69,7 +80,7 @@ export async function POST(request: NextRequest) {
     const orderItems = items.map((item: any) => ({
       order_id: orderData.id,
       product_id: item.product_id,
-      product_name: item.product_name,
+      product_name: item.product.name,
       product_price: item.price,
       quantity: item.quantity,
       total: item.price * item.quantity,

@@ -1,3 +1,4 @@
+// app/api/checkout/verify/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { createClient } from '@/lib/supabase/server';
@@ -11,11 +12,19 @@ export async function POST(request: NextRequest) {
       razorpay_signature,
       order_number,
     } = body;
+    
+    const razorpaySecret = process.env.RAZORPAY_KEY_SECRET;
+    
+    // Check if Razorpay key secret is available
+    if (!razorpaySecret) {
+      console.error('RAZORPAY_KEY_SECRET is not set. Cannot verify payment signature.');
+      return NextResponse.json({ success: false, message: 'Payment key not configured' }, { status: 500 });
+    }
 
     // Verify signature
     const text = `${razorpay_order_id}|${razorpay_payment_id}`;
     const expectedSignature = crypto
-      .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET!)
+      .createHmac('sha256', razorpaySecret)
       .update(text)
       .digest('hex');
 
