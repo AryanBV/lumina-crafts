@@ -58,8 +58,6 @@ export default function Header() {
   const navLinks = [
     { href: "/", label: "Home" },
     { href: "/products", label: "Shop" },
-    { href: "/about", label: "Our Story" },
-    { href: "/contact", label: "Contact" },
   ];
 
   const freeShippingThreshold = 1000;
@@ -101,7 +99,7 @@ export default function Header() {
               </div>
             </Link>
 
-            {/* Desktop Navigation */}
+            {/* Desktop Navigation - Simplified */}
             <div className="hidden lg:flex items-center space-x-10">
               {navLinks.map((link) => (
                 <Link
@@ -115,6 +113,15 @@ export default function Header() {
                   <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-caramel to-gold group-hover:w-full transition-all duration-300"></span>
                 </Link>
               ))}
+              <Link
+                href="/track-order"
+                className="relative group py-2"
+              >
+                <span className="text-coffee font-medium group-hover:text-caramel transition-colors">
+                  Track Order
+                </span>
+                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-caramel to-gold group-hover:w-full transition-all duration-300"></span>
+              </Link>
             </div>
 
             {/* Right side icons */}
@@ -171,7 +178,7 @@ export default function Header() {
                 )}
               </div>
 
-              {/* Cart with Preview */}
+              {/* Cart with Preview - Same as before */}
               <div 
                 className="relative"
                 onMouseEnter={() => setIsCartHovered(true)}
@@ -189,7 +196,7 @@ export default function Header() {
                   )}
                 </Link>
 
-                {/* Cart Preview Dropdown */}
+                {/* Cart Preview Dropdown - Same as before */}
                 {isCartHovered && cartItems.length > 0 && (
                   <div className="absolute right-0 mt-2 w-96 bg-white rounded-2xl shadow-2xl p-6 z-50 border border-nude">
                     {/* Free Shipping Progress */}
@@ -299,6 +306,13 @@ export default function Header() {
                 {link.label}
               </Link>
             ))}
+            <Link
+              href="/track-order"
+              onClick={() => setIsMenuOpen(false)}
+              className="block text-lg font-medium text-coffee hover:text-caramel transition-colors"
+            >
+              Track Order
+            </Link>
             <div className="pt-6 border-t border-nude">
               {user ? (
                 <div className="space-y-4">
