@@ -1,17 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import confetti from "canvas-confetti";
 import { 
   CheckCircle, Package, Truck, Mail, Copy, 
-  ArrowRight, Gift, MessageCircle 
+  ArrowRight, Gift, MessageCircle, Loader2 
 } from "lucide-react";
 import toast from "react-hot-toast";
 
-export default function OrderConfirmationPage() {
+function OrderConfirmationContent() {
   const searchParams = useSearchParams();
   const [copied, setCopied] = useState(false);
   
@@ -178,10 +178,9 @@ export default function OrderConfirmationPage() {
             </div>
 
             {/* WhatsApp Support */}
-            {/* WhatsApp Support */}
             <div className="mt-8 pt-8 border-t border-nude">
               <p className="text-coffee mb-4">Have questions about your order?</p>
-              <a
+              
                 href={`https://wa.me/919845853903?text=Hi! I just placed order ${orderNumber} and have a question.`}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -195,5 +194,17 @@ export default function OrderConfirmationPage() {
         </motion.div>
       </div>
     </div>
+  );
+}
+
+export default function OrderConfirmationPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-b from-cream to-white flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-coffee" />
+      </div>
+    }>
+      <OrderConfirmationContent />
+    </Suspense>
   );
 }
