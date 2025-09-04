@@ -7,7 +7,12 @@
       "Read(/C:\\Users\\ASUS\\OneDrive\\Documents\\New Projects\\lumina-crafts\\lib\\supabase/**)",
       "Read(/C:\\Users\\ASUS\\OneDrive\\Documents\\New Projects\\lumina-crafts/**)",
       "Read(/C:\\Users\\ASUS\\OneDrive\\Documents\\New Projects\\lumina-crafts\\app\\api\\auth\\callback/**)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Read(/C:\\Users\\ASUS\\OneDrive\\Documents\\New Projects\\lumina-crafts\\app\\api\\checkout\\status/**)",
+      "Read(/C:\\Users\\ASUS\\OneDrive\\Documents\\New Projects\\lumina-crafts\\app\\(auth)\\login/**)",
+      "Read(/C:\\Users\\ASUS\\OneDrive\\Documents\\New Projects\\lumina-crafts\\app\\(auth)\\register/**)",
+      "Read(/C:\\Users\\ASUS\\OneDrive\\Documents\\New Projects\\lumina-crafts\\app\\api\\auth\\callback/**)",
+      "Read(/C:\\Users\\ASUS\\OneDrive\\Documents\\New Projects\\lumina-crafts\\app\\(auth)\\register/**)"
     ],
     "deny": [],
     "ask": []
