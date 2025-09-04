@@ -61,6 +61,7 @@ export async function POST(request: NextRequest) {
         guest_email,
         guest_name,
         guest_phone,
+        shipping_address: JSON.stringify(shipping_address), // Store address as JSON
         subtotal: Math.round(subtotal * 100), // Convert to paise
         discount: 0,
         shipping: Math.round(shipping * 100), // Convert to paise

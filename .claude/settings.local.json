@@ -20,7 +20,8 @@
       "Read(/C:\\Users\\ASUS\\OneDrive\\Documents\\New Projects\\lumina-crafts\\app\\(shop)\\products/**)",
       "Read(/C:\\Users\\ASUS\\OneDrive\\Documents\\New Projects\\lumina-crafts\\app\\(shop)\\products/**)",
       "Read(/C:\\Users\\ASUS\\OneDrive\\Documents\\New Projects\\lumina-crafts\\components\\shop/**)",
-      "Read(/C:\\Users\\ASUS\\OneDrive\\Documents\\New Projects\\lumina-crafts\\app\\(shop)\\products\\[slug]/**)"
+      "Read(/C:\\Users\\ASUS\\OneDrive\\Documents\\New Projects\\lumina-crafts\\app\\(shop)\\products\\[slug]/**)",
+      "Read(/C:\\Users\\ASUS\\OneDrive\\Documents\\New Projects\\lumina-crafts\\app\\api\\checkout\\razorpay/**)"
     ],
     "deny": [],
     "ask": []
