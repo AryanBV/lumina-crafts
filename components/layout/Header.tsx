@@ -49,10 +49,18 @@ export default function Header() {
   }, [supabase.auth]);
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    toast.success("Signed out successfully");
-    router.push("/");
-    router.refresh();
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        toast.error("Error signing out: " + error.message);
+        return;
+      }
+      toast.success("Signed out successfully");
+      router.push("/");
+      router.refresh();
+    } catch (error: any) {
+      toast.error("Error signing out: " + error.message);
+    }
   };
 
   const navLinks = [

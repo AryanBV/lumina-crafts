@@ -41,7 +41,6 @@ export async function POST(request: NextRequest) {
       .from('orders')
       .update({
         status: 'paid',
-        payment_status: 'paid',
         payment_intent_id: razorpay_payment_id,
       })
       .eq('order_number', order_number);

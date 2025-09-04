@@ -3,9 +3,11 @@
 import Link from "next/link";
 import { Product } from "@/types";
 import { formatPrice } from "@/lib/utils";
+import { useCartStore } from "@/lib/store";
 import { ShoppingBag, Heart } from "lucide-react";
 import { motion } from "framer-motion";
 import { useState } from "react";
+import toast from "react-hot-toast";
 
 interface ProductCardProps {
   product: Product;
@@ -14,6 +16,16 @@ interface ProductCardProps {
 
 export default function ProductCard({ product, index = 0 }: ProductCardProps) {
   const [isLiked, setIsLiked] = useState(false);
+  const { addItem } = useCartStore();
+
+  const handleQuickAdd = () => {
+    if (product.stock > 0) {
+      addItem(product, true); // Show toast for quick add
+      toast.success(`${product.name} added to cart!`);
+    } else {
+      toast.error("Sorry, this item is out of stock");
+    }
+  };
 
   return (
     <motion.div
@@ -34,12 +46,14 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
           {/* Overlay on hover */}
           <div className="absolute inset-0 bg-brown/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
             <motion.button
+              onClick={handleQuickAdd}
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
-              className="bg-white text-coffee px-6 py-3 rounded-full font-medium flex items-center space-x-2 transform -translate-y-2 group-hover:translate-y-0 transition-transform"
+              disabled={product.stock <= 0}
+              className="bg-white text-coffee px-6 py-3 rounded-full font-medium flex items-center space-x-2 transform -translate-y-2 group-hover:translate-y-0 transition-transform disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <ShoppingBag className="w-4 h-4" />
-              <span>Quick Add</span>
+              <span>{product.stock > 0 ? "Quick Add" : "Out of Stock"}</span>
             </motion.button>
           </div>
 

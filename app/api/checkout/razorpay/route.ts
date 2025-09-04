@@ -69,7 +69,6 @@ export async function POST(request: NextRequest) {
         status: 'pending',
         payment_method: 'razorpay',
         payment_intent_id: order.id,
-        payment_status: 'pending',
       })
       .select()
       .single();

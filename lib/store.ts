@@ -8,7 +8,7 @@ interface CartItem {
 
 interface CartStore {
   items: CartItem[];
-  addItem: (product: Product) => void;
+  addItem: (product: Product, showToast?: boolean) => void;
   removeItem: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
   clearCart: () => void;
@@ -19,7 +19,7 @@ interface CartStore {
 export const useCartStore = create<CartStore>((set, get) => ({
   items: [],
   
-  addItem: (product) => {
+  addItem: (product, showToast = false) => {
     set((state) => {
       const existingItem = state.items.find(item => item.product.id === product.id);
       

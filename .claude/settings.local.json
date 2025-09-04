@@ -12,7 +12,15 @@
       "Read(/C:\\Users\\ASUS\\OneDrive\\Documents\\New Projects\\lumina-crafts\\app\\(auth)\\login/**)",
       "Read(/C:\\Users\\ASUS\\OneDrive\\Documents\\New Projects\\lumina-crafts\\app\\(auth)\\register/**)",
       "Read(/C:\\Users\\ASUS\\OneDrive\\Documents\\New Projects\\lumina-crafts\\app\\api\\auth\\callback/**)",
-      "Read(/C:\\Users\\ASUS\\OneDrive\\Documents\\New Projects\\lumina-crafts\\app\\(auth)\\register/**)"
+      "Read(/C:\\Users\\ASUS\\OneDrive\\Documents\\New Projects\\lumina-crafts\\app\\(auth)\\register/**)",
+      "Read(/C:\\Users\\ASUS\\OneDrive\\Documents\\New Projects\\lumina-crafts\\components\\layout/**)",
+      "Read(/C:\\Users\\ASUS\\OneDrive\\Documents\\New Projects\\lumina-crafts\\components\\layout/**)",
+      "Read(/C:\\Users\\ASUS\\OneDrive\\Documents\\New Projects\\lumina-crafts\\app\\(shop)\\products/**)",
+      "Read(/C:\\Users\\ASUS\\OneDrive\\Documents\\New Projects\\lumina-crafts\\app\\(shop)\\products/**)",
+      "Read(/C:\\Users\\ASUS\\OneDrive\\Documents\\New Projects\\lumina-crafts\\app\\(shop)\\products/**)",
+      "Read(/C:\\Users\\ASUS\\OneDrive\\Documents\\New Projects\\lumina-crafts\\app\\(shop)\\products/**)",
+      "Read(/C:\\Users\\ASUS\\OneDrive\\Documents\\New Projects\\lumina-crafts\\components\\shop/**)",
+      "Read(/C:\\Users\\ASUS\\OneDrive\\Documents\\New Projects\\lumina-crafts\\app\\(shop)\\products\\[slug]/**)"
     ],
     "deny": [],
     "ask": []

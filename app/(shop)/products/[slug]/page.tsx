@@ -53,7 +53,7 @@ export default function ProductDetailsPage() {
     await new Promise(resolve => setTimeout(resolve, 500));
     
     for (let i = 0; i < quantity; i++) {
-      addItem(product);
+      addItem(product, false); // Don't show individual toasts
     }
     
     setIsAddingToCart(false);

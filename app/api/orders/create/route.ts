@@ -40,7 +40,6 @@ export async function POST(request: NextRequest) {
         total,
         status: payment_method === 'cod' ? 'confirmed' : 'pending',
         payment_method,
-        payment_status: payment_method === 'cod' ? 'pending' : 'pending',
       })
       .select()
       .single();
