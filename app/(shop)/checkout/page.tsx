@@ -47,7 +47,7 @@ export default function CheckoutPage() {
   const [shippingSpeed, setShippingSpeed] = useState<'standard' | 'express'>('standard');
   const [savedAddresses, setSavedAddresses] = useState<any[]>([]);
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
-  const [paymentMethod, setPaymentMethod] = useState<'online' | 'cod'>('online');
+  const [paymentMethod, setPaymentMethod] = useState<'online' | 'cod'>('cod'); // Default to COD
   
   // Form Data
   const [shippingAddress, setShippingAddress] = useState<ShippingAddress>({
@@ -69,6 +69,10 @@ export default function CheckoutPage() {
 
   useEffect(() => {
     checkUser();
+    // Default to COD if Razorpay is not configured
+    if (!process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID) {
+      setPaymentMethod('cod');
+    }
   }, []);
 
   const checkUser = async () => {
@@ -130,6 +134,45 @@ export default function CheckoutPage() {
     });
   };
 
+  const createOrder = async (method: string) => {
+    // For COD orders
+    try {
+      const orderData = {
+        items: items.map(item => ({
+          product_id: item.product.id,
+          product_name: item.product.name,
+          quantity: item.quantity,
+          price: item.product.price,
+        })),
+        shipping_address: selectedAddressId ? 
+          savedAddresses.find(a => a.id === selectedAddressId) : 
+          shippingAddress,
+        subtotal,
+        shipping: shippingCost,
+        tax,
+        total,
+        payment_method: method,
+        user_id: user?.id || null,
+        guest_email: isGuest ? shippingAddress.email : null,
+        guest_name: isGuest ? shippingAddress.name : null,
+        guest_phone: isGuest ? shippingAddress.phone : null,
+      };
+
+      const response = await fetch('/api/orders/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(orderData),
+      });
+
+      const { orderNumber } = await response.json();
+      
+      clearCart();
+      router.push(`/order-confirmation?order=${orderNumber}&method=${method}`);
+    } catch (error) {
+      toast.error("Failed to create order");
+    }
+  };
+
   const handlePayment = async () => {
     if (paymentMethod === 'cod') {
       // Handle Cash on Delivery
@@ -142,7 +185,7 @@ export default function CheckoutPage() {
     try {
       // Check if the public Razorpay key is defined
       if (!process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID) {
-        toast.error("Online payment is not configured. Please choose another method.");
+        toast.error("Online payment is not configured. Please choose Cash on Delivery.");
         setIsProcessing(false);
         return;
       }
@@ -245,45 +288,6 @@ export default function CheckoutPage() {
     }
   };
 
-  const createOrder = async () => {
-    // For COD orders
-    try {
-      const orderData = {
-        items: items.map(item => ({
-          product_id: item.product.id,
-          product_name: item.product.name,
-          quantity: item.quantity,
-          price: item.product.price,
-        })),
-        shipping_address: selectedAddressId ? 
-          savedAddresses.find(a => a.id === selectedAddressId) : 
-          shippingAddress,
-        subtotal,
-        shipping: shippingCost,
-        tax,
-        total,
-        payment_method: 'cod',
-        user_id: user?.id || null,
-        guest_email: isGuest ? shippingAddress.email : null,
-        guest_name: isGuest ? shippingAddress.name : null,
-        guest_phone: isGuest ? shippingAddress.phone : null,
-      };
-
-      const response = await fetch('/api/orders/create', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(orderData),
-      });
-
-      const { orderNumber } = await response.json();
-      
-      clearCart();
-      router.push(`/order-confirmation?order=${orderNumber}&method=cod`);
-    } catch (error) {
-      toast.error("Failed to create order");
-    }
-  };
-
   if (items.length === 0) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-cream to-white flex items-center justify-center">
@@ -311,12 +315,10 @@ export default function CheckoutPage() {
       />
       
       <div className="min-h-screen bg-gradient-to-b from-cream to-white">
-        {/* Header - Same as before */}
+        {/* Header */}
         <div className="bg-white shadow-sm sticky top-0 z-40">
           <div className="section-padding py-4">
             <div className="flex items-center justify-between">
-              
-              
               {/* Steps Indicator */}
               <div className="hidden md:flex items-center space-x-8">
                 {[
@@ -364,7 +366,7 @@ export default function CheckoutPage() {
             {/* Main Content */}
             <div className="lg:col-span-2">
               <AnimatePresence mode="wait">
-                {/* Step 1: Shipping Information - Same as before */}
+                {/* Step 1: Shipping Information */}
                 {currentStep === 1 && (
                   <motion.div
                     key="shipping"
@@ -455,7 +457,7 @@ export default function CheckoutPage() {
                         </div>
                       </div>
 
-                      {/* Rest of the address fields - same as before */}
+                      {/* Rest of the address fields */}
                       <div>
                         <label className="block text-sm font-medium text-coffee mb-2">
                           Address Line 1 *
@@ -520,31 +522,7 @@ export default function CheckoutPage() {
                             <option value="Karnataka">Karnataka</option>
                             <option value="Tamil Nadu">Tamil Nadu</option>
                             <option value="Gujarat">Gujarat</option>
-                            <option value="West Bengal">West Bengal</option>
-                            <option value="Rajasthan">Rajasthan</option>
-                            <option value="Uttar Pradesh">Uttar Pradesh</option>
-                            <option value="Madhya Pradesh">Madhya Pradesh</option>
-                            <option value="Kerala">Kerala</option>
-                            <option value="Punjab">Punjab</option>
-                            <option value="Haryana">Haryana</option>
-                            <option value="Telangana">Telangana</option>
-                            <option value="Andhra Pradesh">Andhra Pradesh</option>
-                            <option value="Bihar">Bihar</option>
-                            <option value="Assam">Assam</option>
-                            <option value="Odisha">Odisha</option>
-                            <option value="Chhattisgarh">Chhattisgarh</option>
-                            <option value="Jharkhand">Jharkhand</option>
-                            <option value="Uttarakhand">Uttarakhand</option>
-                            <option value="Goa">Goa</option>
-                            <option value="Himachal Pradesh">Himachal Pradesh</option>
-                            <option value="Jammu and Kashmir">Jammu and Kashmir</option>
-                            <option value="Sikkim">Sikkim</option>
-                            <option value="Tripura">Tripura</option>
-                            <option value="Meghalaya">Meghalaya</option>
-                            <option value="Manipur">Manipur</option>
-                            <option value="Nagaland">Nagaland</option>
-                            <option value="Arunachal Pradesh">Arunachal Pradesh</option>
-                            <option value="Mizoram">Mizoram</option>
+                            {/* Add more states as needed */}
                           </select>
                         </div>
                         
@@ -568,7 +546,7 @@ export default function CheckoutPage() {
                         </div>
                       </div>
 
-                      {/* Shipping Speed - Same as before */}
+                      {/* Shipping Speed */}
                       <div className="mt-6">
                         <h3 className="font-medium text-brown mb-3">Shipping Speed</h3>
                         <div className="grid md:grid-cols-2 gap-4">
@@ -639,57 +617,69 @@ export default function CheckoutPage() {
                         </button>
                       </div>
                     </form>
-                  </div>
+                  </motion.div>
                 )}
 
-                {/* Step 2: Payment with Razorpay */}
-                {/* Payment Options */}
-                  <div className="space-y-4 mb-8">
-                    {/* Online Payment */}
-                    <label className={`block p-6 rounded-2xl border-2 cursor-pointer transition-all ${
-                      paymentMethod === 'online' 
-                        ? 'border-caramel bg-gradient-to-br from-nude-light to-cream' 
-                        : 'border-nude hover:border-coffee'
-                    } ${!process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID ? 'opacity-50 cursor-not-allowed' : ''}`}>
-                      <input
-                        type="radio"
-                        name="payment"
-                        value="online"
-                        checked={paymentMethod === 'online'}
-                        onChange={() => process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID && setPaymentMethod('online')}
-                        className="sr-only"
-                        disabled={!process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID}
-                      />
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-3">
-                            <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center">
-                              <Smartphone className="w-6 h-6 text-caramel" />
-                            </div>
-                            <div>
-                              <p className="font-semibold text-brown">Pay Online</p>
-                              <p className="text-sm text-coffee">
-                                {process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID 
-                                  ? "UPI, Cards, Net Banking, Wallets" 
-                                  : "Currently unavailable"}
-                              </p>
-                            </div>
-                          </div>
-                          {paymentMethod === 'online' && process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID && (
-                            <Check className="w-6 h-6 text-caramel" />
-                          )}
-                        </div>
-                      </div>
-                    </label>
+                {/* Step 2: Payment */}
+                {currentStep === 2 && (
+                  <motion.div
+                    key="payment"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    className="bg-white rounded-3xl shadow-xl p-8"
+                  >
+                    <h2 className="text-2xl font-serif font-bold text-brown mb-6">
+                      Payment Method
+                    </h2>
 
-                    {/* Add this notice if Razorpay is not configured */}
-                    {!process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID && (
-                      <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-xl">
-                        <p className="text-sm text-yellow-800">
-                          Online payments will be available soon. Please use Cash on Delivery for now.
-                        </p>
-                      </div>
-                    )}
+                    {/* Payment Options */}
+                    <div className="space-y-4 mb-8">
+                      {/* Online Payment */}
+                      <label className={`block p-6 rounded-2xl border-2 cursor-pointer transition-all ${
+                        paymentMethod === 'online' 
+                          ? 'border-caramel bg-gradient-to-br from-nude-light to-cream' 
+                          : 'border-nude hover:border-coffee'
+                      } ${!process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                        <input
+                          type="radio"
+                          name="payment"
+                          value="online"
+                          checked={paymentMethod === 'online'}
+                          onChange={() => process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID && setPaymentMethod('online')}
+                          className="sr-only"
+                          disabled={!process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID}
+                        />
+                        <div className="space-y-4">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-3">
+                              <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center">
+                                <Smartphone className="w-6 h-6 text-caramel" />
+                              </div>
+                              <div>
+                                <p className="font-semibold text-brown">Pay Online</p>
+                                <p className="text-sm text-coffee">
+                                  {process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID 
+                                    ? "UPI, Cards, Net Banking, Wallets" 
+                                    : "Currently unavailable"}
+                                </p>
+                              </div>
+                            </div>
+                            {paymentMethod === 'online' && process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID && (
+                              <Check className="w-6 h-6 text-caramel" />
+                            )}
+                          </div>
+                        </div>
+                      </label>
+
+                      {/* Add this notice if Razorpay is not configured */}
+                      {!process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID && (
+                        <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-xl">
+                          <p className="text-sm text-yellow-800">
+                            Online payments will be available soon. Please use Cash on Delivery for now.
+                          </p>
+                        </div>
+                      )}
 
                       {/* Cash on Delivery */}
                       <label className={`block p-6 rounded-2xl border-2 cursor-pointer transition-all ${
@@ -734,15 +724,7 @@ export default function CheckoutPage() {
                       </div>
                       <div className="flex items-center space-x-3 text-coffee">
                         <Check className="w-5 h-5 text-caramel" />
-                        <span className="text-sm">Verified by Razorpay</span>
-                      </div>
-                    </div>
-
-                    {/* Powered by Razorpay */}
-                    <div className="text-center mb-6">
-                      <p className="text-xs text-coffee-light mb-2">Secure payments powered by</p>
-                      <div className="inline-flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg">
-                        <span className="text-white font-bold">Razorpay</span>
+                        <span className="text-sm">Verified Merchant</span>
                       </div>
                     </div>
 
@@ -781,7 +763,7 @@ export default function CheckoutPage() {
               </AnimatePresence>
             </div>
 
-            {/* Order Summary Sidebar - Same as before */}
+            {/* Order Summary Sidebar */}
             <div className="lg:col-span-1">
               <div className="bg-white rounded-3xl shadow-xl p-6 sticky top-32">
                 <h3 className="text-xl font-serif font-bold text-brown mb-4">
@@ -811,11 +793,9 @@ export default function CheckoutPage() {
                 {/* Price Breakdown */}
                 <div className="space-y-3 py-6 border-y border-nude">
                   <div className="flex justify-between text-coffee">
-                    <span>Subtotal ({items.length} items)</span>
+                    <span>Subtotal</span>
                     <span className="font-medium">{formatPrice(subtotal)}</span>
                   </div>
-                  
-                  {/* Coupon/Discount section removed due to missing variables */}
                   
                   <div className="flex justify-between text-coffee">
                     <span className="flex items-center space-x-1">
@@ -831,11 +811,10 @@ export default function CheckoutPage() {
                     </span>
                   </div>
                   
-                  {shippingCost > 0 && (
-                    <p className="text-xs text-coffee-light">
-                      Add {formatPrice(1000 - subtotal)} more for free shipping
-                    </p>
-                  )}
+                  <div className="flex justify-between text-coffee">
+                    <span>GST (18%)</span>
+                    <span className="font-medium">{formatPrice(tax)}</span>
+                  </div>
                 </div>
 
                 {/* Total */}
@@ -846,39 +825,7 @@ export default function CheckoutPage() {
                     <p className="text-xs text-coffee-light">Including GST</p>
                   </div>
                 </div>
-
-                {/* Checkout Button */}
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => router.push('/checkout')}
-                  className="w-full bg-gradient-to-r from-coffee to-caramel text-white font-medium py-4 rounded-full hover:shadow-2xl transition-all duration-300 flex items-center justify-center space-x-2"
-                >
-                  <span>Proceed to Checkout</span>
-                  <ArrowRight className="w-5 h-5" />
-                </motion.button>
-
-                {/* Payment Methods */}
-                <div className="mt-6 pt-6 border-t border-nude">
-                  <p className="text-sm text-coffee-light text-center mb-3">
-                    We accept
-                  </p>
-                  <div className="flex justify-center space-x-3">
-                    <div className="w-12 h-8 bg-nude-light rounded flex items-center justify-center text-xs font-bold text-coffee">
-                      VISA
-                    </div>
-                    <div className="w-12 h-8 bg-nude-light rounded flex items-center justify-center text-xs font-bold text-coffee">
-                      MC
-                    </div>
-                    <div className="w-12 h-8 bg-nude-light rounded flex items-center justify-center text-xs font-bold text-coffee">
-                      UPI
-                    </div>
-                    <div className="w-12 h-8 bg-nude-light rounded flex items-center justify-center text-xs font-bold text-coffee">
-                      NB
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
+              </div>
             </div>
           </div>
         </div>
