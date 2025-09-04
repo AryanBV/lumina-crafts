@@ -34,6 +34,9 @@ export default function CheckoutPage() {
   const router = useRouter();
   const { items, getTotalPrice, clearCart } = useCartStore();
   const [isProcessing, setIsProcessing] = useState(false);
+  const [razorpayAvailable, setRazorpayAvailable] = useState(false);
+  const [razorpayPublicKey, setRazorpayPublicKey] = useState<string | null>(null);
+  const [isCheckingPayment, setIsCheckingPayment] = useState(true);
   const [shippingAddress, setShippingAddress] = useState<ShippingAddress>({
     name: "",
     email: "",
@@ -49,6 +52,25 @@ export default function CheckoutPage() {
   const shippingCost = subtotal > 1000 ? 0 : 99;
   const tax = subtotal * 0.18; // 18% GST
   const total = subtotal + shippingCost + tax;
+
+  // Check Razorpay availability on component mount
+  useEffect(() => {
+    const checkPaymentStatus = async () => {
+      try {
+        const response = await fetch('/api/checkout/status');
+        const data = await response.json();
+        setRazorpayAvailable(data.razorpay_available);
+        setRazorpayPublicKey(data.public_key);
+      } catch (error) {
+        console.error('Failed to check payment status:', error);
+        setRazorpayAvailable(false);
+      } finally {
+        setIsCheckingPayment(false);
+      }
+    };
+
+    checkPaymentStatus();
+  }, []);
 
   const initializeRazorpay = () => {
     return new Promise((resolve) => {
@@ -120,7 +142,7 @@ export default function CheckoutPage() {
 
       // Razorpay payment options
       const options = {
-        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+        key: razorpayPublicKey,
         amount: Math.round(total * 100), // Amount in paise
         currency: "INR",
         name: "Lumina Crafts",
@@ -352,30 +374,54 @@ export default function CheckoutPage() {
                     <div className="pt-6 border-t border-nude">
                       <h3 className="text-lg font-semibold text-brown mb-4">Payment Method</h3>
                       
-                      <div className="bg-gradient-to-br from-nude-light to-cream rounded-2xl p-6 border-2 border-caramel">
-                        <div className="flex items-center space-x-4">
-                          <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center">
-                            <Smartphone className="w-6 h-6 text-caramel" />
-                          </div>
-                          <div className="flex-1">
-                            <p className="font-semibold text-brown">Secure Online Payment</p>
-                            <p className="text-sm text-coffee">Pay securely with UPI, Cards, Net Banking, or Wallets</p>
-                          </div>
-                          <CreditCard className="w-8 h-8 text-caramel" />
+                      {isCheckingPayment ? (
+                        <div className="bg-nude-light rounded-2xl p-6 text-center">
+                          <div className="w-6 h-6 border-2 border-caramel border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+                          <p className="text-coffee">Checking payment options...</p>
                         </div>
-                      </div>
+                      ) : razorpayAvailable ? (
+                        <>
+                          <div className="bg-gradient-to-br from-nude-light to-cream rounded-2xl p-6 border-2 border-caramel">
+                            <div className="flex items-center space-x-4">
+                              <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center">
+                                <Smartphone className="w-6 h-6 text-caramel" />
+                              </div>
+                              <div className="flex-1">
+                                <p className="font-semibold text-brown">Secure Online Payment</p>
+                                <p className="text-sm text-coffee">Pay securely with UPI, Cards, Net Banking, or Wallets</p>
+                              </div>
+                              <CreditCard className="w-8 h-8 text-caramel" />
+                            </div>
+                          </div>
 
-                      {/* Security badges */}
-                      <div className="flex items-center justify-center space-x-6 mt-4 text-sm text-coffee">
-                        <div className="flex items-center space-x-1">
-                          <Shield className="w-4 h-4 text-caramel" />
-                          <span>100% Secure</span>
+                          {/* Security badges */}
+                          <div className="flex items-center justify-center space-x-6 mt-4 text-sm text-coffee">
+                            <div className="flex items-center space-x-1">
+                              <Shield className="w-4 h-4 text-caramel" />
+                              <span>100% Secure</span>
+                            </div>
+                            <div className="flex items-center space-x-1">
+                              <Lock className="w-4 h-4 text-caramel" />
+                              <span>SSL Encrypted</span>
+                            </div>
+                          </div>
+                        </>
+                      ) : (
+                        <div className="bg-yellow-50 border border-yellow-200 rounded-2xl p-6">
+                          <div className="flex items-center space-x-3 mb-3">
+                            <div className="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
+                              <Package className="w-4 h-4 text-yellow-600" />
+                            </div>
+                            <p className="font-semibold text-yellow-800">Payment Currently Unavailable</p>
+                          </div>
+                          <p className="text-sm text-yellow-700 mb-3">
+                            Online payments are temporarily unavailable. We're working to enable secure payment options soon.
+                          </p>
+                          <p className="text-sm text-yellow-700">
+                            Please contact us at <a href="tel:+919845853903" className="font-semibold text-yellow-800">+91 98458 53903</a> to place your order.
+                          </p>
                         </div>
-                        <div className="flex items-center space-x-1">
-                          <Lock className="w-4 h-4 text-caramel" />
-                          <span>SSL Encrypted</span>
-                        </div>
-                      </div>
+                      )}
                     </div>
 
                     {/* Action Buttons */}
@@ -390,13 +436,23 @@ export default function CheckoutPage() {
                       
                       <button
                         onClick={handlePayment}
-                        disabled={isProcessing}
+                        disabled={isProcessing || !razorpayAvailable || isCheckingPayment}
                         className="flex items-center space-x-2 px-8 py-4 bg-gradient-to-r from-coffee to-caramel text-white font-semibold rounded-full hover:shadow-lg transition-all disabled:opacity-50"
                       >
                         {isProcessing ? (
                           <>
                             <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                             <span>Processing...</span>
+                          </>
+                        ) : isCheckingPayment ? (
+                          <>
+                            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                            <span>Loading...</span>
+                          </>
+                        ) : !razorpayAvailable ? (
+                          <>
+                            <Package className="w-5 h-5" />
+                            <span>Payment Unavailable</span>
                           </>
                         ) : (
                           <>

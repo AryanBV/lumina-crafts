@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(/C:\\Users\\ASUS\\OneDrive\\Documents\\New Projects\\lumina-crafts\\app\\(shop)\\checkout/**)",
+      "Read(/C:\\Users\\ASUS\\OneDrive\\Documents\\New Projects\\lumina-crafts\\lib\\supabase/**)",
+      "Read(/C:\\Users\\ASUS\\OneDrive\\Documents\\New Projects\\lumina-crafts\\lib\\supabase/**)",
+      "Read(/C:\\Users\\ASUS\\OneDrive\\Documents\\New Projects\\lumina-crafts\\lib\\supabase/**)",
+      "Read(/C:\\Users\\ASUS\\OneDrive\\Documents\\New Projects\\lumina-crafts/**)",
+      "Read(/C:\\Users\\ASUS\\OneDrive\\Documents\\New Projects\\lumina-crafts\\app\\api\\auth\\callback/**)",
+      "Bash(git add:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
