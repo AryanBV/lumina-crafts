@@ -175,6 +175,7 @@ function OrderConfirmationContent() {
             <div className="mt-8 pt-8 border-t border-nude">
               <p className="text-coffee mb-4">Have questions about your order?</p>
               
+              <a
                 href={`https://wa.me/919845853903?text=Hi! I just placed order ${orderNumber} and have a question.`}
                 target="_blank"
                 rel="noopener noreferrer"
