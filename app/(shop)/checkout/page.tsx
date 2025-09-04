@@ -643,88 +643,53 @@ export default function CheckoutPage() {
                 )}
 
                 {/* Step 2: Payment with Razorpay */}
-                {currentStep === 2 && (
-                  <motion.div
-                    key="payment"
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
-                    className="bg-white rounded-3xl shadow-xl p-8"
-                  >
-                    <h2 className="text-2xl font-serif font-bold text-brown mb-6">
-                      Payment Method
-                    </h2>
-
-                    {/* Payment Options */}
-                    <div className="space-y-4 mb-8">
-                      {/* Online Payment */}
-                      <label className={`block p-6 rounded-2xl border-2 cursor-pointer transition-all ${
-                        paymentMethod === 'online' 
-                          ? 'border-caramel bg-gradient-to-br from-nude-light to-cream' 
-                          : 'border-nude hover:border-coffee'
-                      } ${!process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID ? 'opacity-50 cursor-not-allowed' : ''}`}>
-                        <input
-                          type="radio"
-                          name="payment"
-                          value="online"
-                          checked={paymentMethod === 'online'}
-                          onChange={() => setPaymentMethod('online')}
-                          className="sr-only"
-                          disabled={!process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID}
-                        />
-                        <div className="space-y-4">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-3">
-                              <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center">
-                                <Smartphone className="w-6 h-6 text-caramel" />
-                              </div>
-                              <div>
-                                <p className="font-semibold text-brown">Pay Online</p>
-                                <p className="text-sm text-coffee">UPI, Cards, Net Banking, Wallets</p>
-                              </div>
+                {/* Payment Options */}
+                  <div className="space-y-4 mb-8">
+                    {/* Online Payment */}
+                    <label className={`block p-6 rounded-2xl border-2 cursor-pointer transition-all ${
+                      paymentMethod === 'online' 
+                        ? 'border-caramel bg-gradient-to-br from-nude-light to-cream' 
+                        : 'border-nude hover:border-coffee'
+                    } ${!process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                      <input
+                        type="radio"
+                        name="payment"
+                        value="online"
+                        checked={paymentMethod === 'online'}
+                        onChange={() => process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID && setPaymentMethod('online')}
+                        className="sr-only"
+                        disabled={!process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID}
+                      />
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center">
+                              <Smartphone className="w-6 h-6 text-caramel" />
                             </div>
-                            {paymentMethod === 'online' && (
-                              <Check className="w-6 h-6 text-caramel" />
-                            )}
+                            <div>
+                              <p className="font-semibold text-brown">Pay Online</p>
+                              <p className="text-sm text-coffee">
+                                {process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID 
+                                  ? "UPI, Cards, Net Banking, Wallets" 
+                                  : "Currently unavailable"}
+                              </p>
+                            </div>
                           </div>
-                          
-                          {paymentMethod === 'online' && (
-                            <div className="bg-white rounded-xl p-4">
-                              <p className="text-sm font-medium text-brown mb-3">Available Payment Methods:</p>
-                              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                                <div className="text-center">
-                                  <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-3 mb-1">
-                                    <Smartphone className="w-6 h-6 text-green-600 mx-auto" />
-                                  </div>
-                                  <p className="text-xs text-coffee">UPI</p>
-                                  <p className="text-xs text-coffee-light">GPay, PhonePe</p>
-                                </div>
-                                <div className="text-center">
-                                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-3 mb-1">
-                                    <CardIcon className="w-6 h-6 text-blue-600 mx-auto" />
-                                  </div>
-                                  <p className="text-xs text-coffee">Cards</p>
-                                  <p className="text-xs text-coffee-light">Debit/Credit</p>
-                                </div>
-                                <div className="text-center">
-                                  <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-3 mb-1">
-                                    <Building className="w-6 h-6 text-purple-600 mx-auto" />
-                                  </div>
-                                  <p className="text-xs text-coffee">Net Banking</p>
-                                  <p className="text-xs text-coffee-light">All Banks</p>
-                                </div>
-                                <div className="text-center">
-                                  <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg p-3 mb-1">
-                                    <Wallet className="w-6 h-6 text-orange-600 mx-auto" />
-                                  </div>
-                                  <p className="text-xs text-coffee">Wallets</p>
-                                  <p className="text-xs text-coffee-light">Paytm, etc</p>
-                                </div>
-                              </div>
-                            </div>
+                          {paymentMethod === 'online' && process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID && (
+                            <Check className="w-6 h-6 text-caramel" />
                           )}
                         </div>
-                      </label>
+                      </div>
+                    </label>
+
+                    {/* Add this notice if Razorpay is not configured */}
+                    {!process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID && (
+                      <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-xl">
+                        <p className="text-sm text-yellow-800">
+                          Online payments will be available soon. Please use Cash on Delivery for now.
+                        </p>
+                      </div>
+                    )}
 
                       {/* Cash on Delivery */}
                       <label className={`block p-6 rounded-2xl border-2 cursor-pointer transition-all ${
