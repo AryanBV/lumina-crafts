@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
 
     const order = await razorpay.orders.create(options);
 
-    // Save order in database with pending status
+    // Save order in database with pending status (convert decimals to integers as paise)
     const { data: orderData, error } = await supabase
       .from('orders')
       .insert({
@@ -61,11 +61,11 @@ export async function POST(request: NextRequest) {
         guest_email,
         guest_name,
         guest_phone,
-        subtotal,
+        subtotal: Math.round(subtotal * 100), // Convert to paise
         discount: 0,
-        shipping,
-        tax,
-        total,
+        shipping: Math.round(shipping * 100), // Convert to paise
+        tax: Math.round(tax * 100), // Convert to paise
+        total: Math.round(total * 100), // Convert to paise
         status: 'pending',
         payment_method: 'razorpay',
         payment_intent_id: order.id,
@@ -75,14 +75,14 @@ export async function POST(request: NextRequest) {
 
     if (error) throw error;
 
-    // Save order items
+    // Save order items (convert prices to integers as paise)
     const orderItems = items.map((item: any) => ({
       order_id: orderData.id,
       product_id: item.product_id,
       product_name: item.product_name,
-      product_price: item.price,
+      product_price: Math.round(item.price * 100), // Convert to paise
       quantity: item.quantity,
-      total: item.price * item.quantity,
+      total: Math.round(item.price * item.quantity * 100), // Convert to paise
     }));
 
     await supabase.from('order_items').insert(orderItems);
