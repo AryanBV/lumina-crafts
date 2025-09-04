@@ -28,11 +28,12 @@ function OrderConfirmationContent() {
       return Math.random() * (max - min) + min;
     }
 
-    const interval: any = setInterval(function() {
+    const interval = setInterval(function() {
       const timeLeft = animationEnd - Date.now();
 
       if (timeLeft <= 0) {
-        return clearInterval(interval);
+        clearInterval(interval);
+        return;
       }
 
       const particleCount = 50 * (timeLeft / duration);
@@ -70,9 +71,7 @@ function OrderConfirmationContent() {
           transition={{ duration: 0.5 }}
           className="max-w-3xl mx-auto"
         >
-          {/* Success Card */}
           <div className="bg-white rounded-3xl shadow-2xl p-8 md:p-12 text-center">
-            {/* Success Animation */}
             <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
@@ -94,7 +93,6 @@ function OrderConfirmationContent() {
               Thank you for your purchase. We're preparing your candles with love!
             </p>
 
-            {/* Order Number */}
             <div className="bg-gradient-to-r from-nude to-nude-light rounded-2xl p-6 mb-8">
               <p className="text-sm text-coffee-light mb-2">Your Order Number</p>
               <div className="flex items-center justify-center space-x-3">
@@ -111,7 +109,6 @@ function OrderConfirmationContent() {
               </p>
             </div>
 
-            {/* What's Next */}
             <div className="text-left mb-8">
               <h3 className="text-xl font-semibold text-brown mb-4 text-center">What happens next?</h3>
               <div className="space-y-4">
@@ -145,7 +142,6 @@ function OrderConfirmationContent() {
               </div>
             </div>
 
-            {/* Special Offer */}
             <div className="bg-gradient-to-r from-gold/20 to-caramel/20 rounded-2xl p-6 mb-8">
               <div className="flex items-center justify-center space-x-2 mb-3">
                 <Gift className="w-5 h-5 text-caramel" />
@@ -159,7 +155,6 @@ function OrderConfirmationContent() {
               </div>
             </div>
 
-            {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
                 href="/track-order"
@@ -177,7 +172,6 @@ function OrderConfirmationContent() {
               </Link>
             </div>
 
-            {/* WhatsApp Support */}
             <div className="mt-8 pt-8 border-t border-nude">
               <p className="text-coffee mb-4">Have questions about your order?</p>
               
