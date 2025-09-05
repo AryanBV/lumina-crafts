@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Facebook, Instagram, Twitter, Mail, Phone, MapPin, Heart, Flame, MessageCircle } from "lucide-react";
 
 export default function Footer() {
@@ -8,7 +9,15 @@ export default function Footer() {
       <div className="border-t border-nude">
         <div className="section-padding py-12">
           <div className="bg-white rounded-3xl shadow-xl p-8 md:p-12 text-center">
-            <Flame className="w-12 h-12 text-caramel mx-auto mb-4" />
+            <div className="mx-auto mb-6 flex justify-center">
+              <Image
+                src="/images/Lumina-logo.png"
+                alt="Lumina Crafts Logo"
+                width={45}
+                height={45}
+                className="object-contain"
+              />
+            </div>
             <h3 className="text-3xl font-serif font-bold text-brown mb-3">
               Light Up Your Inbox
             </h3>
@@ -34,13 +43,21 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Brand Section */}
           <div>
-            <div className="flex items-center space-x-3 mb-4">
-              <div className="bg-gradient-to-r from-caramel to-gold p-2 rounded-full">
-                <Flame className="w-6 h-6 text-white" />
-              </div>
-              <h2 className="text-2xl font-serif font-bold text-brown">
-                Lumina Crafts
-              </h2>
+            <div className="flex items-center space-x-2 mb-4">
+              <Image
+                src="/images/footer-brand-name.png?v=2"
+                alt="Lumina Crafts Logo"
+                width={45}
+                height={45}
+                className="object-contain"
+              />
+              <Image
+                src="/images/footer-brand-logo.png?v=2"
+                alt="Lumina Crafts"
+                width={140}
+                height={35}
+                className="object-contain"
+              />
             </div>
             <p className="text-coffee mb-6">
               Handcrafted candles made with natural soy wax and premium fragrances to illuminate your moments.
