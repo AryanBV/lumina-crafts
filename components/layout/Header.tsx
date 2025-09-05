@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useState, useEffect } from "react";
 import { ShoppingBag, Menu, X, User, Search, Flame, Trash2, ChevronRight } from "lucide-react";
 import { cn, formatPrice } from "@/lib/utils";
@@ -92,18 +93,24 @@ export default function Header() {
         <nav className="section-padding">
           <div className="flex items-center justify-between">
             {/* Logo */}
-            <Link href="/" className="group flex items-center space-x-3">
+            <Link href="/" className="group flex items-center space-x-2">
               <div className="relative">
-                <div className="absolute inset-0 bg-gradient-to-r from-caramel to-gold rounded-full blur-lg opacity-30 group-hover:opacity-60 transition-opacity"></div>
-                <div className="relative bg-gradient-to-r from-caramel to-gold p-2 rounded-full">
-                  <Flame className="w-6 h-6 text-white" />
-                </div>
+                <Image
+                  src="/images/Lumina-logo.png"
+                  alt="Lumina Crafts Logo"
+                  width={45}
+                  height={45}
+                  className="object-contain"
+                />
               </div>
-              <div>
-                <h1 className="text-2xl font-serif font-bold text-gradient">
-                  Lumina Crafts
-                </h1>
-                <p className="text-xs text-coffee-light tracking-widest uppercase">Premium Candles</p>
+              <div className="relative">
+                <Image
+                  src="/images/Lumina-logo-name.png"
+                  alt="Lumina Crafts"
+                  width={140}
+                  height={35}
+                  className="object-contain"
+                />
               </div>
             </Link>
 
